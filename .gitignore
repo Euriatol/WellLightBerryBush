@@ -1,1 +1,4 @@
 wlbb/.spyproject
+main.py
+wlbb.egg-info
+*.pyc
