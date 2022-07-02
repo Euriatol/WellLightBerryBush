@@ -2,148 +2,145 @@
 # -*- coding: utf-8 -*-
 
 """
-Implement the configuration interface class.
+Created on Thu Jun 30 21:31:41 2022
+
+@author: lothaire
 """
 
-import string as _string
+from abc import ABC, abstractmethod
 
-from wlbb.lib.config.config_manager import get_config_manager as _get_config_manager
-from wlbb.lib.config.config_manager import ConfigManagerProtocol
+from typing import List, Dict, Any
 
-VALID_ALPHABET = _string.ascii_letters + _string.digits + "_-"
+ParameterGroupDict = Dict[str, Any]
+ConfigDict = Dict[str, ParameterGroupDict]
 
-class NotAParameterError(ValueError):
-    """Inexistant parameter."""
 
-class InvalidConfigNameError(ValueError):
-    """Invalid configuration's name."""
+class ConfigLoader(ABC):
+    """
+    A config loader is used to create, delete, load and save configuration.
+    """
 
-def config_name_valid(config_name):
-    """Return True if config_name is a valid name for a configuration."""
-    return all([l in VALID_ALPHABET for l in config_name])
+    @abstractmethod
+    def get_config_list(self, config_dir: str) -> List[str]:
+        """
+        Return a list containing all config name compatible with the config loader
+        in the directory `config_dir`.
+        """
 
-def _assert_param_in_config(param, config):
-    """Raise an error if param isn't a parameter in config."""
-    if param not in config.get_config_dict():
-        raise NotAParameterError("%a isn't a parameter."%param)
+    @abstractmethod
+    def create_config(self, config_dir: str, config_name: str):
+        """
+        Create an empty config file in the directory `config_dir`.
+        """
 
-def _assert_config_name_is_valid(config_name):
-    """Raise an error if config_name isn't a valid name for a configuration."""
-    if not config_name_valid(config_name):
-        raise InvalidConfigNameError("%a isn't a valid name for a configuration."%config_name)
+    @abstractmethod
+    def delete_config(self, config_dir: str, config_name: str):
+        """
+        Delete the specified config file in the directory `config_dir` if it
+        exists.
+        """
 
-class Config:
-    """Configuration interface for WLBB."""
+    @abstractmethod
+    def load_config(self, config_dir: str, config_name: str) -> ConfigDict:
+        """
+        Return the requested configuration if it exists as a dictionnary
+        associating parameter groups name with their representation : another
+        dictionnary associating parameters with their value.
 
-    def __init__(self):
-        self.config_name = None
-        self._config_default = {}
-        self._config = {}
-        self._metadata = {}
+        Example of the a config representation as a dict:
+        {
+            "PARAMETER_GROUP_1":{"parameter1":value1, "parameter2":value2}
+        }
+        """
 
-    def set_config_dict(self, new_config):
-        """Set the config dict to new_config."""
-        self._config = dict(new_config)
+    @abstractmethod
+    def save_config(self, config_dict: ConfigDict, config_dir: str, config_name: str):
+        """
+        Save the config's representation as a dict in the configuration file
+        for `config_name` in the directory `config_dir`.
+        If this config file doesn't exists yet, it is created.
 
-    def set_config_default_dict(self, new_config_default):
-        """Set the config default dict to new_config_default."""
-        self._config_default = dict(new_config_default)
+        Example of the a config representation as a dict:
+        {
+            "PARAMETER_GROUP_1":{"parameter1":value1, "parameter2":value2}
+        }
+        """
 
-    def set_metadata_dict(self, new_metadata):
-        """Set the metadata dict to new_metadata."""
-        self._metadata = dict(new_metadata)
 
-    def get_config_dict(self):
-        """Return the config dict."""
-        return self._config
+class WLBBParameterGroup:
+    """
+    A cluster of parameters which can be modified and accessed.
+    """
 
-    def get_config_default_dict(self):
-        """Return the config default dict."""
-        return self._config_default
+    def __init__(self, name, pg_dict=None):
+        self.name = name
+        if pg_dict is None:
+            self._dict = {}
+        else:
+            self._dict = pg_dict
 
-    def get_metadata_dict(self):
-        """Return the metadata dict."""
-        return self._metadata
+    def get_dict(self):
+        """
+        Return the dictionnary representation of the parameter group.
+        """
+        return self._dict.copy()
 
-    def load(self, config_name: str, config_manager: ConfigManagerProtocol = None):
-        """Load the configuration named config_name from the specified config manager."""
-        _assert_config_name_is_valid(config_name)
 
-        if config_manager is None:
-            config_manager = _get_config_manager()
+class WLBBConfig:
+    """
+    The configuration interface for a WLBB instance which allow
+    loading, saving, generating and modifying configurations.
+    """
 
-        config_manager.load_config(config_name, self)
-        self.config_name = config_name
+    _dict: Dict[str, WLBBParameterGroup]
 
-        return self
+    def __init__(self, wlbb_instance):
+        """
+        Create a config interface for the WLBB instance.
+        """
+        self._dict = {}
 
-    def save_as(self, new_config_name: str, config_manager: ConfigManagerProtocol = None):
-        """Save this configuration as new_config_name with the specified config manager."""
-        _assert_config_name_is_valid(new_config_name)
+    def import_dict(self, new_config_dict: ConfigDict):
+        """
+        Import the config `new_config_dict`.
+        """
+        self._dict.clear()
 
-        if config_manager is None:
-            config_manager = _get_config_manager()
+        for pg_name, pg_dict in new_config_dict.items():
+            self._dict[pg_name] = WLBBParameterGroup(pg_name, pg_dict)
 
-        config_manager.save_config(self, new_config_name)
+    def import_default(self, cfg_loader: ConfigLoader = None):
+        """
+        Generate and import a default config compatible with the WLBB instance.
+        """
 
-        return self
+    def import_config(self, cfg_name: str, cfg_loader: ConfigLoader = None):
+        """
+        Import the config named `cfg_name` if it exists and modify it to be
+        compatible with the current WLBB instance.
+        """
 
-    def save(self, config_manager: ConfigManagerProtocol = None):
-        """Save this configuration with the specified config manager."""
-        self.save_as(self.config_name, config_manager)
+    def load(self, cfg_loader: ConfigLoader = None):
+        """
+        Load the WLBB instance's associated configuration using the given config
+        loader or a default one.
 
-        return self
+        If there isn't any configuration file associated with this WLBB instance,
+        an generated configuration file is created containing a compatible
+        configuration.
+        """
 
-    def add_param(self, param, defaul_value):
-        """Add the parameter param to this configuration."""
-        self._config_default[param] = defaul_value
-        self._config[param] = defaul_value
+    def save(self, cfg_loader: ConfigLoader = None):
+        """
+        Save the current configuration in the WLBB instance's associated config file.
+        """
 
-        return self
+    def get_config_dict(self) -> ConfigDict:
+        """
+        Return the dictionnary representation of the configuration.
+        """
+        new_dict = {}
+        for pg_name, pg in self._dict.items():
+            new_dict[pg_name] = pg.get_dict()
 
-    def del_param(self, param):
-        """Delete the parameter param from this configuration."""
-        _assert_param_in_config(param, self)
-
-        self._config_default.pop(param)
-        self._config.pop(param)
-
-        return self
-
-    def set_default(self, param, default_value):
-        """Set the default value of a given parameter."""
-        _assert_param_in_config(param, self)
-
-        self._config_default[param] = default_value
-
-        return self
-
-    def get_default(self, param):
-        """Return the default value of a given parameter."""
-        _assert_param_in_config(param, self)
-
-        return self._config_default[param]
-
-    def set_value(self, param, value):
-        """Set the value of a given parameter."""
-        _assert_param_in_config(param, self)
-
-        self._config[param] = value
-
-        return self
-
-    def get_value(self, param):
-        """Return the value of a given parameter."""
-        _assert_param_in_config(param, self)
-
-        return self._config[param]
-
-    def restore_default(self, param):
-        """Restore the default value of a given parameter."""
-        self.set_value(param, self.get_default(param))
-
-        return self
-
-    def get_param_list(self):
-        """Return the list containing every parameter in this configuration."""
-        return list(self._config)
+        return new_dict

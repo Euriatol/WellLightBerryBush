@@ -5,10 +5,23 @@
 server.py
 """
 
+from wlbb.lib.config import Config
+from wlbb.lib.profile import Profile
+
+
+def get_server_id(server_name: str):
+    if server_name:
+        return "server_" + server_name
+    else:
+        return "server"
+
 
 class WLBBServer:
-    def __init__(self):
-        pass
+    def __init__(self, server_name: str = ""):
+        self.server_id = get_server_id(server_name)
+
+        self.config = Config()
+        self.profile = Profile()
 
     def init(self):
         pass
@@ -25,10 +38,10 @@ class WLBBServer:
     def restart(self):
         pass
 
-    def get_config(self):
+    def get_profile(self):
         pass
 
-    def load_config(self, new_config):
+    def load_profile(self, new_profile):
         pass
 
     def reload(self):

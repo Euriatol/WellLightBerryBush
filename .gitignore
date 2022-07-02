@@ -2,3 +2,4 @@ wlbb/.spyproject
 main.py
 wlbb.egg-info
 *.pyc
+.pre-commit-config.yaml

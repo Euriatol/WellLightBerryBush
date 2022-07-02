@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-Configuration related package.
+__init__.py
 """
 
-from wlbb.lib.config.wlbb_config import Config, config_name_valid
+from wlbb.lib.config.wlbb_config import ConfigLoader
+from wlbb.lib.config.wlbb_config import WLBBConfig
+from wlbb.lib.config.wlbb_config import WLBBParameterGroup
