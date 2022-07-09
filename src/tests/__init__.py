@@ -17,7 +17,7 @@ class WLBBDummyAgent(WLBBAgent):
     """
 
     agent = "dummy"
-    parameter_groups = ["PARAM_GROUP1", "PARAM_GROUP2"]
+    config_sections = ["PARAM_GROUP1", "PARAM_GROUP2"]
 
     def init(self):
         pass
@@ -43,10 +43,10 @@ class TestingConfigLoader(ConfigLoader):
     A config loader used for testing.
     """
 
-    def __init__(self, configs: Dict[str, Dict[str, ConfigDict]] = {}) -> List[str]:
+    def __init__(self, configs: Dict[str, Dict[str, ConfigDict]]):
         self.configs = configs
 
-    def get_config_list(self, config_dir: str):
+    def get_config_list(self, config_dir: str) -> List[str]:
         """
         Return a list containing all config name compatible with the config loader
         in the virtual directory `config_dir`.
@@ -78,7 +78,7 @@ class TestingConfigLoader(ConfigLoader):
     def load_config(self, config_dir: str, config_name: str) -> ConfigDict:
         """
         Return the requested configuration if it exists as a dictionnary
-        associating parameter groups name with their representation : another
+        associating config section name with their representation : another
         dictionnary associating parameters with their value.
 
         Example of the a config representation as a dict:

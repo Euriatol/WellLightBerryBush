@@ -10,7 +10,9 @@ from enum import Enum
 from abc import ABC, abstractmethod
 from typing import List
 
+from wlbb.lib.logger import WLBBLogger
 from wlbb.lib.config.wlbb_config import ConfigLoader
+from wlbb.lib.config.default import BuiltinDefaultConfigLoader
 from wlbb.lib.config.wlbb_config import WLBBConfig
 
 
@@ -47,13 +49,9 @@ class WLBBAgent(ABC):
     name: str
     agent_id: str
 
-    parameter_groups: List[str]
+    config_sections: List[str]
 
     status: Status = Status.INACTIVE
-
-    config_loader: ConfigLoader
-    config: WLBBConfig
-    # Others parts
 
     def __init__(self, name: str):
         assert_name_is_valid(name)
@@ -110,6 +108,12 @@ class WLBBAgent(ABC):
         self.config_loader = cfg_loader
 
     # Getters
+    def get_config_sections_list(self):
+        """
+        Return a list containing every config section required for this agent.
+        """
+        return self.config_sections
+
     def get_config(self):
         """
         Return the config.

@@ -7,10 +7,13 @@ Test the WLBB's configuration interface.
 
 from wlbb.lib.config import WLBBConfig
 
-# from wlbb.lib.config import WLBBParameterGroup
+# from wlbb.lib.config import WLBBConfigSection
 
-from wlbb.lib.paths import get_config_dir, get_default_config_dir
-from wlbb.lib.config.default import DEFAULT_CFG_NAME
+from wlbb.lib.paths import get_config_dir
+from wlbb.lib.config.default import (
+    DEFAULT_CFG_NAME,
+    get_builtin_default_config_dir as get_default_config_dir,
+)
 
 from . import WLBBDummyAgent
 from . import TestingConfigLoader

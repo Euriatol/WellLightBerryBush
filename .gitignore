@@ -3,3 +3,7 @@ main.py
 wlbb.egg-info
 *.pyc
 .pre-commit-config.yaml
+.spyproject/workspace.ini
+.spyproject/vcs.ini
+.spyproject/encoding.ini
+.spyproject/codestyle.ini

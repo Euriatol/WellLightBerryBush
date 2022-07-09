@@ -66,3 +66,6 @@ class WLBBLogger:
         Log `msg` at the critical error level.
         """
         self.log(CRITICAL, msg, *args, **kwargs)
+
+
+wlbb_logger = getLogger()
